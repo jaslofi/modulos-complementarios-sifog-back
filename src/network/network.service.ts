@@ -36,7 +36,6 @@ export class NetworkService implements OnModuleInit {
 
   private async connectToNetworkShare(): Promise<void> {
     try {
-      // Primero intentamos conectar sin mapear
       await this.testConnection();
       this.isConnected = true;
       this.logger.log('Conexión establecida sin necesidad de mapear unidad');
@@ -46,7 +45,6 @@ export class NetworkService implements OnModuleInit {
     }
 
     try {
-      // Si falla, intentamos mapear la unidad
       await this.mapNetworkDrive();
       this.isConnected = true;
       this.logger.log('Unidad de red mapeada con éxito');
@@ -67,7 +65,6 @@ export class NetworkService implements OnModuleInit {
 
   private async mapNetworkDrive(): Promise<void> {
     try {
-      // Comando para mapear unidad de red en Windows
       const { stdout, stderr } = await execAsync(
         `net use ${this.sharePath} /user:${this.username} ${this.password}`
       );
@@ -82,7 +79,6 @@ export class NetworkService implements OnModuleInit {
     }
   }
 
-  // Métodos para FileService
   async fileExists(filePath: string): Promise<boolean> {
     return new Promise((resolve) => {
       access(filePath, constants.F_OK, (err) => {

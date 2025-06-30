@@ -13,7 +13,7 @@ export class ViaticosService {
 
   async generarReporteExcel(
     fechaInicio: string,
-    fechaFin: string,               
+    fechaFin: string,
     filtroFolio: string,
   ) {
     try {
@@ -26,9 +26,12 @@ export class ViaticosService {
           (SELECT p.clave FROM partida p 
            JOIN gastopartida gp ON p.idPartida = gp.idPartida 
            WHERE gp.idGastoCorriente = gc.idGastoCorriente LIMIT 1) AS PARTIDA,
-           (SELECT cv.conceptoViatico FROM conceptoviatico cv
-     JOIN gastopartida gp ON cv.idConceptoViatico = gp.idConceptoViatico
-     WHERE gp.idGastoCorriente = gc.idGastoCorriente LIMIT 1) AS CONCEPTO_VIATICO, 
+           (SELECT cv.conceptoViatico 
+        FROM comprobantes comp
+           JOIN gastopartida gp ON comp.idGastoPartida = gp.idGastoPartida
+           JOIN conceptoviatico cv ON gp.idConceptoViatico = cv.idConceptoViatico
+           WHERE comp.folioComprobante = c.folioComprobante
+           LIMIT 1) AS CONCEPTO_VIATICO, 
           c.proveedor AS PROVEEDOR,
           c.folioComprobante AS XML_FOLIO,
           c.fecha AS FECHA_SPEI,
@@ -55,6 +58,9 @@ export class ViaticosService {
       ];
 
       const result = await this.viaticosRepository.query(query, params);
+
+      console.log('AQUI ESTA EL QUERY :', query);
+      console.log('AQUI ESTAN LOS PARAMETROS :', params);
 
       if (!result || result.length === 0) {
         throw new Error('La consulta no devolvió resultados');
@@ -97,12 +103,12 @@ export class ViaticosService {
 
       worksheet.autoFilter = {
         from: {
-          row: 1,    
-          column: 1,  
+          row: 1,
+          column: 1,
         },
         to: {
           row: 1,
-          column: worksheet.columns.length, 
+          column: worksheet.columns.length,
         },
       };
 

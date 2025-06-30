@@ -1,6 +1,6 @@
 import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
 
-@Entity('gastocorriente')
+
 export class Viatico {
   @PrimaryGeneratedColumn()
   idGastoCorriente: number;
@@ -19,4 +19,4 @@ export class Viatico {
 
   @Column({ name: 'idComprobacion' })
   idComprobacion: number;
-}
+} 
