@@ -59,9 +59,6 @@ export class ViaticosService {
 
       const result = await this.viaticosRepository.query(query, params);
 
-      console.log('AQUI ESTA EL QUERY :', query);
-      console.log('AQUI ESTAN LOS PARAMETROS :', params);
-
       if (!result || result.length === 0) {
         throw new Error('La consulta no devolvió resultados');
       }
@@ -70,23 +67,41 @@ export class ViaticosService {
       const worksheet = workbook.addWorksheet('Viáticos');
 
       worksheet.columns = [
-        { header: 'NÚMERO DE OFICIO', key: 'NUMERO_OFICIO', width: 20 },
         { header: 'NÚMERO DE RECIBO', key: 'NUMERO_RECIBO', width: 20 },
+        { header: 'NUM. OFI.', key: 'NUMERO_OFICIO', width: 20 },
         { header: 'NOMBRE DEL VIATICADO', key: 'NOMBRE_VIATICADO', width: 30 },
         { header: 'PARTIDA', key: 'PARTIDA', width: 15 },
-        { header: 'CONCEPTO VIATICO', key: 'CONCEPTO_VIATICO', width: 15 },
         { header: 'PROVEEDOR', key: 'PROVEEDOR', width: 25 },
-        { header: 'FOLIO XML', key: 'XML_FOLIO', width: 20 },
-        { header: 'FECHA SPEI', key: 'FECHA_SPEI', width: 15 },
-        { header: 'IMPORTE ($)', key: 'IMPORTE_BUENA_POR', width: 18, style: { numFmt: '"$"#,##0.00' } }
+        { header: 'R.F.C.', key: '', width: 25 },
+        { header: 'USO CFDI', key: '', width: 25 },
+        { header: 'FECHA FAC/RECIBO', key: '', width: 15 },
+        { header: 'XML/FÓLIO', key: 'XML_FOLIO', width: 20 },
+        { header: 'DESCRIPCIÓN', key: 'CONCEPTO_VIATICO', width: 15 },
+        { header: 'FECHA DE SPEI', key: 'FECHA_SPEI', width: 15 },
+        { header: 'Nº CUENTA BANCARIA', key: '', width: 15 },
+        { header: 'Nº SPEI', key: '', width: 15 },
+        { header: 'SUBTOTAL', key: 'SUBTOTAL', width: 15,style: { numFmt: '"$"#,##0.00' } },
+        { header: 'IVA', key: 'IVA', width: 15,style: { numFmt: '"$"#,##0.00' } },
+        { header: 'ISR', key: '', width: 15 },
+        { header: 'HOSPEDAJE 2%', key: '', width: 15 },
+        { header: 'IEPS 8%', key: '', width: 15 },
+        { header: 'IMPORTE TOTAL', key: 'IMPORTE_BUENA_POR', width: 25,style: { numFmt: '"$"#,##0.00' } },
+        // { header: 'IMPORTE BUENA POR', key: '', width: 18, style: { numFmt: '"$"#,##0.00' } },
+        { header: 'REINTEGRO', key: '', width: 15 },
+        { header: 'REEMBOLSO', key: '', width: 15 },
+        { header: 'TOTAL POR PQTE', key: '', width: 15 },
+        { header: 'ENTREGO', key: '', width: 15 },
+
       ];
+
+      worksheet.getRow(1).height = 50;
 
       worksheet.getRow(1).eachCell((cell) => {
         cell.font = { bold: true, color: { argb: 'FFFFFF' } };
         cell.fill = {
           type: 'pattern',
           pattern: 'solid',
-          fgColor: { argb: 'FF4F81BD' }
+          fgColor: { argb: 'bf8f00' }
         };
         cell.border = {
           top: { style: 'thin' },
@@ -97,8 +112,30 @@ export class ViaticosService {
         cell.alignment = { vertical: 'middle', horizontal: 'center' };
       });
 
-      result.forEach(row => {
-        worksheet.addRow(row);
+      result.forEach((rowData) => {
+        const importe = parseFloat(rowData.IMPORTE_BUENA_POR) || 0;
+
+        const subtotal = +(importe / 1.16).toFixed(2);
+        const iva = +(importe - subtotal).toFixed(2);
+
+        worksheet.addRow({
+          ...rowData,
+          SUBTOTAL: subtotal,
+          IVA: iva,
+          IMPORTE_TOTAL: importe,
+        });
+      });
+
+
+      const headerRow = worksheet.getRow(1);
+
+      headerRow.eachCell((cell) => {
+        if (cell.value === 'ISR') {
+          cell.font = {
+            bold: true,
+            color: { argb: 'FF0000' },
+          };
+        }
       });
 
       worksheet.autoFilter = {
