@@ -35,14 +35,12 @@ export class FileService {
 
   async downloadFile(filename: string, res: Response): Promise<void> {
     try {
-      const filePath = this.networkService.getFullPath(filename);
-      
-      if (!(await this.networkService.fileExists(filePath))) {
+      if (!(await this.networkService.fileExists(filename))) {
         throw new Error('Archivo no encontrado');
       }
 
-      const stats = await this.networkService.getFileStats(filePath);
-      const fileStream = this.networkService.createReadStream(filePath);
+      const stats = this.networkService.getFileStats(filename);
+      const fileStream = this.networkService.createReadStream(filename);
 
       res.set({
         'Content-Type': 'application/pdf',
@@ -75,10 +73,10 @@ export class FileService {
       archive.pipe(res);
 
       for (const filename of fileNames) {
-        const filePath = this.networkService.getFullPath(filename);
-
         try {
-          if (await this.networkService.fileExists(filePath)) {
+          if (await this.networkService.fileExists(filename)) {
+            const filePath = this.networkService.getFullPath(filename);
+
             const comprobante = await this.comprobanteRepository.findOne({
               where: { url: filename },
             });
@@ -99,13 +97,11 @@ export class FileService {
   }
 
   async previewFile(filename: string, res: Response): Promise<void> {
-    const filePath = this.networkService.getFullPath(filename);
-    
-    if (!(await this.networkService.fileExists(filePath))) {
+    if (!(await this.networkService.fileExists(filename))) {
       throw new Error('Archivo no encontrado');
     }
 
     res.setHeader('Content-Type', 'application/pdf');
-    this.networkService.createReadStream(filePath).pipe(res);
+    this.networkService.createReadStream(filename).pipe(res);
   }
 }

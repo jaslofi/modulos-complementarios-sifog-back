@@ -12,6 +12,7 @@ export class FileController {
     private readonly networkService: NetworkService,
   ) {}
 
+  
   @Get()
   async getFiles(
     @Query('search') search: string,
@@ -34,16 +35,15 @@ export class FileController {
     }
   }
   
-  @Get('preview/:filename')
-  async previewFile(@Param('filename') filename: string, @Res() res: Response) {
-    const filePath = path.join(this.networkService.getBasePath(), filename);
-
-    if (!await this.networkService.fileExists(filePath)) {
-      throw new NotFoundException('Archivo no encontrado');
-    }
-
-    res.setHeader('Content-Type', 'application/pdf');
-    const stream = this.networkService.createReadStream(filePath);
-    stream.pipe(res);
+@Get('preview/:filename')
+async previewFile(@Param('filename') filename: string, @Res() res: Response) {
+  if (!await this.networkService.fileExists(filename)) {
+    throw new NotFoundException('Archivo no encontrado');
   }
+
+  res.setHeader('Content-Type', 'application/pdf');
+  const stream = this.networkService.createReadStream(filename);
+  stream.pipe(res);
+}
+
 }
